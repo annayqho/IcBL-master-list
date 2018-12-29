@@ -7,6 +7,9 @@ from astropy.cosmology import Planck15
 from astropy.io import ascii
 
 
+DATA_DIR = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
+
+
 def todeg(ra, dec):
     """ convert XX:XX:XX to decimal degrees """
     radeg = []
@@ -41,6 +44,7 @@ def opensn():
         ra.append(str(val).split(',')[0])
         dec.append(str(dat['Dec.'][ii]).split(',')[0])
 
+
 def ptf():
     """ the PTF/iPTF sample of 34 Ic-BL SNe
     I copied the table directly from the .tex file downloaded from the arXiv,
@@ -52,26 +56,28 @@ def ptf():
     I also removed the commented-out lines
     """
     dat = Table.read(
-            "taddia2018.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/taddia2018.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra = dat['col2']
     dec = dat['col3']
     radeg, decdeg = todeg(ra, dec)
     z = dat['col5']
-    choose = z <= 0.1
-    return list(name[choose]), list(radeg[choose]), list(decdeg[choose]), list(z[choose])
+    return list(name), list(radeg), list(decdeg), list(z)
+
 
 def ztf():
     """ The list of Ic-BL discovered in ZTF """
     dat = Table.read(
-            "ztf.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/ztf.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra = dat['col2']
     dec = dat['col3']
     radeg, decdeg = todeg(ra, dec)
     z = dat['col4']
-    choose = z <= 0.1
-    return list(name[choose]), list(radeg[choose]), list(decdeg[choose]), list(z[choose])
+    return list(name), list(radeg), list(decdeg), list(z)
+
 
 def sdssII():
     """ the sample from SDSS-II (Taddia et al. 2015)
@@ -79,7 +85,8 @@ def sdssII():
     also got rid of the IIb that was commented out
     """
     dat = Table.read(
-            "taddia2015.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/taddia2015.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra_raw = dat['col2'].tolist()
     dec_raw = dat['col3'].tolist()
@@ -89,40 +96,43 @@ def sdssII():
     ra = np.array(ra_raw)
     dec = np.array(dec_raw)
     z = np.array(dat['col5'])
-    choose = z <= 0.1 # only one of them!
-    radeg, decdeg = todeg(ra[choose], dec[choose])
-    return name[choose], radeg, decdeg, z[choose]
+    radeg, decdeg = todeg(ra, dec)
+    return name, radeg, decdeg, z
+
 
 def cano2013():
     """ The table of GRB/XRF-less Ic-BL SNe,
     from Cano et al. 2013 (since the ones with GRBs 
     I added positions to the table from the Open Supernova Catalog """
     dat = Table.read(
-            "cano2013.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/cano2013.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra = dat['col3']
     dec = dat['col4']
     radeg,decdeg = todeg(ra,dec)
     z = dat['col5']
-    choose = z <= 0.1 
-    return name[choose], radeg[choose], decdeg[choose], z[choose]
+    return name, radeg, decdeg, z
+
 
 def cano2016():
     """ The table of GRB-SNe from Cano et al. 2016 """
     dat = Table.read(
-            "cano2016.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/cano2016.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col2'] # SN name, not GRB name
     ra = dat['col4']
     dec = dat['col5']
     radeg,decdeg = todeg(ra,dec)
     z = dat['col6']
-    choose = z <= 0.1 
-    return name[choose], radeg[choose], decdeg[choose], z[choose]
+    return name, radeg, decdeg, z
+
 
 def lyman2016():
     """ The list of Ic-BL SNe from Lyman et al. 2016 """
     dat = Table.read(
-            "lyman2016.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/lyman2016.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra = dat['col3'] 
     dec = dat['col4'] 
@@ -131,13 +141,14 @@ def lyman2016():
     distmod = np.array(
             [val.split('pm')[0].strip('$') for val in temp]).astype(float)
     z = np.array([Distance(distmod=val).z for val in distmod])
-    choose = z <= 0.1 
-    return name[choose], radeg[choose], decdeg[choose], z[choose]
+    return name, radeg, decdeg, z
+
 
 def prentice2016():
     """ The list of Ic-BL SNe from Prentice et al. 2016 """
     dat = Table.read(
-            "prentice2016.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/prentice2016.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     cl = dat['col2']
     ra = dat['col3']
@@ -145,8 +156,8 @@ def prentice2016():
     radeg, decdeg = todeg(ra,dec)
     z = dat['col6']
     is_icbl = np.logical_or(cl=='Ic-BL', cl=='GRB-SN')
-    choose = np.logical_and(is_icbl, z <= 0.1)
-    return name[choose], radeg[choose], decdeg[choose], z[choose]
+    return name[is_icbl], radeg[is_icbl], decdeg[is_icbl], z[is_icbl]
+
 
 def modjaz2016():
     """ The list of Ic-BL SNe from Modjaz et al. 2016 
@@ -154,14 +165,14 @@ def modjaz2016():
     Actually removed all of them except SN2007bg, because
     that was the only new one. """
     dat = Table.read(
-            "modjaz.dat", delimiter='&', format='ascii.fast_no_header')
+            "%s/modjaz.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
     ra = dat['col2']
     dec =dat['col3']
     radeg, decdeg = todeg(ra,dec)
     z = dat['col4']
-    choose = z <= 0.1
-    return name[choose], radeg[choose], decdeg[choose], z[choose]
+    return name, radeg, decdeg, z
 
 
 def add(name, ra, dec, redshift, n, r, d, z):
@@ -189,8 +200,9 @@ def add(name, ra, dec, redshift, n, r, d, z):
     print("added %s events" %str(nadd))
     return name, ra, dec, redshift
 
+
 if __name__=="__main__":
-    # Name, RA, Dec, Redshift (z <= 0.1)
+    # Name, RA, Dec, Redshift 
     print("Adding the PTF/iPTF sample")
     name, ra, dec, redshift = ptf()
     print("added %s events" %len(name))
@@ -247,5 +259,6 @@ if __name__=="__main__":
     print(len(name))
 
     ascii.write(
-            [name,ra,dec,redshift], 'local_icbl.txt', 
-            names=['Name', 'RA', 'Dec', 'z'], delimiter=',', overwrite=True)
+            [name,ra,dec,redshift], 'all_icbl.html', 
+            names=['Name', 'RA', 'Dec', 'z'], delimiter=',', overwrite=True,
+            format='html')
