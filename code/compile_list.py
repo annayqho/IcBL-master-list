@@ -72,10 +72,10 @@ def ztf():
             "%s/ztf.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
-    ra = dat['col2']
-    dec = dat['col3']
+    ra = dat['col4']
+    dec = dat['col5']
     radeg, decdeg = todeg(ra, dec)
-    z = dat['col4']
+    z = dat['col6']
     return list(name), list(radeg), list(decdeg), list(z)
 
 
@@ -179,10 +179,10 @@ def tns():
     """ This is the list on TNS as of 2018-12-29 """
     dat = Table.read(
             "%s/tns_search.csv" %DATA_DIR, 
-            delimiter=',', format='csv')
+            delimiter=';')
     name = dat['Name']
     ra = dat['RA']
-    dec =dat['DEC']
+    dec = dat['DEC']
     radeg, decdeg = todeg(ra,dec)
     z = dat['Redshift']
     return name, radeg, decdeg, z
