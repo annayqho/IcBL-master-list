@@ -1,5 +1,6 @@
 """ Check VLASS for Ic-BL SNe """
 
+import numpy as np
 import sys
 sys.path.append("/Users/annaho/Github/Query_VLASS")
 from astropy.io import ascii
@@ -13,7 +14,11 @@ names = dat['Name']
 ras = dat['RA']
 decs = dat['Dec']
 coords = SkyCoord(ras, decs, unit='deg')
+ref = {}
+for ii,name in enumerate(names):
+    ref[name] = coords[ii]
 
 # Check each one
-for ii,name in enumerate(names):
-    search_vlass(name, coords[ii])
+for name in names:
+    if name != 'iPTF15dqg':
+        search_vlass(name, ref[name])

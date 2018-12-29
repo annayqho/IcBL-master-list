@@ -175,6 +175,19 @@ def modjaz2016():
     return name, radeg, decdeg, z
 
 
+def tns():
+    """ This is the list on TNS as of 2018-12-29 """
+    dat = Table.read(
+            "%s/tns_search.csv" %DATA_DIR, 
+            delimiter=',', format='csv')
+    name = dat['Name']
+    ra = dat['RA']
+    dec =dat['DEC']
+    radeg, decdeg = todeg(ra,dec)
+    z = dat['Redshift']
+    return name, radeg, decdeg, z
+
+
 def add(name, ra, dec, redshift, n, r, d, z):
     c = SkyCoord(ra, dec, unit='deg')
     cadd = SkyCoord(r, d, unit='deg')
@@ -249,6 +262,11 @@ if __name__=="__main__":
     d = ['-12:35:18.34']
     radeg,decdeg = todeg(r,d)
     z = [0.037022]
+    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+
+    # Add the list from TNS
+    print("adding list from TNS")
+    n,r,d,z = tns() 
     name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
 
     name = np.array(name)
