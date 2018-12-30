@@ -2,6 +2,7 @@
 
 import numpy as np
 from astropy.table import Table
+from astropy.time import Time
 from astropy.coordinates import SkyCoord,Distance
 from astropy.cosmology import Planck15
 from astropy.io import ascii
@@ -38,16 +39,51 @@ def ptf():
     %s/\*//g
     %s/xx//g
     I also removed the commented-out lines
+    In this paper, they give estimated explosion epochs (with a typical
+    uncertainty of 2 days) for all of the SNe observed before
+    and after r maximum brightness.
+    A lot of them don't have an estimated explosion epoch, though.
+    So what I should do is use the estimate for the ones that have it,
+    and for the ones that don't have it, just report discovery date
+    as I found it on the marshal.
     """
+    # Discovery dates on the Marshal, for the ones that aren't in Table 2
+    # 27 out of 34 leaves 7
+    disc = {}
+    disc['09sk'] = 2455002.74571
+    disc['10cs'] = 2455203.74537
+    disc['12grr'] = 2456117.84878
+    disc['14bfu'] = Time('2014-06-06T03:11:51.86').jd
+    disc['15dld'] = 2457318.82184
+    disc['16coi'] = 2457625.72566
+    disc['17axg'] = 2457784.97286
+
     dat = Table.read(
             "%s/taddia2018.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
+    # file with explosion epochs
+    dat_expl = Table.read(
+            "%s/taddia2018_t2.dat" %DATA_DIR, 
+            delimiter='&', format='ascii.fast_no_header')
+    name_expl = dat_expl['col1']
+    texpl = dat_expl['col8']
+
     name = dat['col1']
+    texpl = []
+    for n in name:
+        try: 
+            ind = np.where(name_expl==n)[0][0]
+            texpl.append(texpl[ind])
+        except:
+            texpl.append(disc[n])
     ra = dat['col2']
     dec = dat['col3']
     radeg, decdeg = todeg(ra, dec)
     z = dat['col5']
-    return list(name), list(radeg), list(decdeg), list(z)
+
+    ref = ['T18']*len(name)
+
+    return list(name), texpl, list(radeg), list(decdeg), list(z), ref
 
 
 def ztf():
