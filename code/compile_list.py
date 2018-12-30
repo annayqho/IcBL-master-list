@@ -50,13 +50,13 @@ def ptf():
     # Discovery dates on the Marshal, for the ones that aren't in Table 2
     # 27 out of 34 leaves 7
     disc = {}
-    disc['09sk'] = 2455002.74571
-    disc['10cs'] = 2455203.74537
-    disc['12grr'] = 2456117.84878
-    disc['14bfu'] = Time('2014-06-06T03:11:51.86').jd
-    disc['15dld'] = 2457318.82184
-    disc['16coi'] = 2457625.72566
-    disc['17axg'] = 2457784.97286
+    disc['PTF09sk'] = 2455002.74571
+    disc['PTF10cs'] = 2455203.74537
+    disc['PTF12grr'] = 2456117.84878
+    disc['iPTF14bfu'] = Time('2014-06-06T03:11:51.86').jd
+    disc['iPTF15dld'] = 2457318.82184
+    disc['iPTF16coi'] = 2457625.72566
+    disc['iPTF17axg'] = 2457784.97286
 
     dat = Table.read(
             "%s/taddia2018.dat" %DATA_DIR, 
@@ -92,11 +92,13 @@ def ztf():
             "%s/ztf.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
-    ra = dat['col4']
-    dec = dat['col5']
+    date = dat['col2']
+    ra = dat['col5']
+    dec = dat['col6']
     radeg, decdeg = todeg(ra, dec)
-    z = dat['col6']
-    return list(name), list(radeg), list(decdeg), list(z)
+    z = dat['col7']
+    ref = ['ZTF']*len(name)
+    return list(name), list(date), list(radeg), list(decdeg), list(z), ref
 
 
 def sdssII():
@@ -208,7 +210,7 @@ def tns():
     return name, radeg, decdeg, z
 
 
-def add(name, ra, dec, redshift, n, r, d, z):
+def add(name, disc, ra, dec, redshift, ref, n, di, r, d, z, re):
     c = SkyCoord(ra, dec, unit='deg')
     cadd = SkyCoord(r, d, unit='deg')
     nadd = 0
@@ -224,26 +226,35 @@ def add(name, ra, dec, redshift, n, r, d, z):
             noname = True
         if np.logical_and(nopos, noname):
             name.append(n[ii])
+            disc.append(di[ii])
             ra.append(r[ii])
             dec.append(d[ii])
             redshift.append(z[ii])
+            ref.append(re[ii])
             nadd += 1
         else:
             print("%s is a duplicate, not adding" %n[ii])
     print("added %s events" %str(nadd))
-    return name, ra, dec, redshift
+    return name, disc, ra, dec, redshift, ref
 
 
 if __name__=="__main__":
-    # Name, RA, Dec, Redshift 
+    # Name, Approximate Expl. Date, RA, Dec, Redshift, Reference
+
     print("Adding the PTF/iPTF sample")
-    name, ra, dec, redshift = ptf()
+    name, disc, ra, dec, redshift, ref = ptf()
     print("added %s events" %len(name))
 
     # Add the new ZTF sample
     print("Adding the ZTF sample")
-    n,r,d,z = ztf()
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = ztf()
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
+
+    print(name)
+    print(disc)
+    print(redshift)
+    print(ref)
 
     # Add the SDSS II sample
     print("Adding the SDSS II sample")
