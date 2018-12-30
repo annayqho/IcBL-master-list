@@ -29,22 +29,6 @@ def todeg(ra, dec):
     return np.array(radeg), np.array(decdeg)
 
 
-def opensn():
-    """ The link to the catalog is here: https://sne.space/
-    I searched for "BL" and got rid of anything that was not Ic-BL
-    (e.g. "blue" or "variable"). I also deleted anything that did not
-    have a known position. The problem is that there is no reported redshift
-    for these sources. """
-    dat = Table.read("open_sn_catalog.csv", format="csv", delimiter=',')
-    nsn = len(dat)
-    ra = []
-    dec = []
-
-    for ii,val in enumerate(dat['R.A.']):
-        ra.append(str(val).split(',')[0])
-        dec.append(str(dat['Dec.'][ii]).split(',')[0])
-
-
 def ptf():
     """ the PTF/iPTF sample of 34 Ic-BL SNe
     I copied the table directly from the .tex file downloaded from the arXiv,
