@@ -92,7 +92,7 @@ def ztf():
             "%s/ztf.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
     name = dat['col1']
-    date = dat['col2']
+    date = dat['col3']
     ra = dat['col5']
     dec = dat['col6']
     radeg, decdeg = todeg(ra, dec)
@@ -109,32 +109,62 @@ def sdssII():
     dat = Table.read(
             "%s/taddia2015.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
+    # Discovery dates from TNS
+    disc = {}
+    disc['SN2005fk'] = Time('2005-09-12T00:00:00').jd
+    disc['SN2005kr'] = Time('2005-11-03T00:00:00').jd
+    # from open SN catalog
+    disc['SN2005ks'] = Time('2005-11-04T00:00:00').jd
+    # from Table 3 in Taddia 2015...not sure what t_0 is though
+    disc['SN14475'] = Time(54008.68, format='mjd').jd
+    # actual texpl from Taddia 2015
+    disc['SN2006nx'] = Time(54038.89, format='mjd').jd
+
     name = dat['col1']
     ra_raw = dat['col2'].tolist()
     dec_raw = dat['col3'].tolist()
+    texpl = []
+    ref = []
     for ii,ra in enumerate(ra_raw):
         ra_raw[ii] = ra.strip('$')
         dec_raw[ii] = dec_raw[ii].strip('$')
+        texpl.append(disc[name[ii]])
+        ref.append('T15')
     ra = np.array(ra_raw)
     dec = np.array(dec_raw)
     z = np.array(dat['col5'])
     radeg, decdeg = todeg(ra, dec)
-    return name, radeg, decdeg, z
+    return name, texpl, radeg, decdeg, z, ref
 
 
 def cano2013():
     """ The table of GRB/XRF-less Ic-BL SNe,
     from Cano et al. 2013 (since the ones with GRBs 
-    I added positions to the table from the Open Supernova Catalog """
+    I added positions from the Open Supernova Catalog """
     dat = Table.read(
             "%s/cano2013.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
+    disc = {}
+    disc['SN1997ef'] = Time('1997-11-25T00:00:00').jd
+    disc['SN2002ap'] = Time('2002-01-29T00:00:00').jd
+    disc['SN2003jd'] = Time('2003-10-25T00:00:00').jd
+    disc['SN2005kz'] = Time('2005-12-01T00:00:00').jd
+    disc['SN2007D'] = Time('2007-01-09T00:00:00').jd
+    disc['SN2007ru'] = Time('2007-11-27T00:00:00').jd
+    disc['SN2009bb'] = Time('2009-03-21T00:00:00').jd
+    disc['SN2010ah'] = Time('2010-02-23T00:00:00').jd
+    disc['SN2010ay'] = Time('2010-03-17T00:00:00').jd
     name = dat['col1']
     ra = dat['col3']
     dec = dat['col4']
     radeg,decdeg = todeg(ra,dec)
     z = dat['col5']
-    return name, radeg, decdeg, z
+    date = []
+    ref = []
+    for n in name:
+        date.append(disc[n])
+        ref.append('C13')
+    return name, date, radeg, decdeg, z, ref
 
 
 def cano2016():
@@ -142,12 +172,26 @@ def cano2016():
     dat = Table.read(
             "%s/cano2016.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
-    name = dat['col2'] # SN name, not GRB name
+    grbname = dat['col1']
+    date = []
+    # turn GRB name into a date
+    for n in grbname:
+        yy = n[0:2]
+        mm = n[2:4]
+        dd = n[4:6]
+        if yy[0] == '9':
+            tstr = '19%s-%s-%sT00:00:00' %(yy,mm,dd)
+            date.append(Time(tstr, format='isot').jd)
+        else:
+            tstr = '20%s-%s-%sT00:00:00' %(yy,mm,dd)
+            date.append(Time(tstr, format='isot').jd)
+    name = dat['col2'] # SN name
     ra = dat['col4']
     dec = dat['col5']
     radeg,decdeg = todeg(ra,dec)
     z = dat['col6']
-    return name, radeg, decdeg, z
+    ref = ['C16'] * len(name)
+    return name, date, radeg, decdeg, z, ref
 
 
 def lyman2016():
@@ -155,7 +199,20 @@ def lyman2016():
     dat = Table.read(
             "%s/lyman2016.dat" %DATA_DIR, 
             delimiter='&', format='ascii.fast_no_header')
+    # from open SN
+    disc = {}
+    disc['SN1998bw'] = Time('1998-04-28T00:00:00').jd
+    disc['SN2002ap'] = Time('2002-01-29T00:00:00').jd
+    disc['SN2003jd'] = Time('2003-10-25T00:00:00').jd
+    disc['SN2005kz'] = Time('2005-12-01T00:00:00').jd
+    disc['SN2006aj'] = Time('2006-02-18T00:00:00').jd
+    disc['SN2007ru'] = Time('2007-11-27T00:00:00').jd
+    disc['SN2009bb'] = Time('2009-03-21T00:00:00').jd
+    disc['SN2010bh'] = Time('2010-03-16T00:00:00').jd
+    date = []
     name = dat['col1']
+    for n in name:
+       date.append(disc[n]) 
     ra = dat['col3'] 
     dec = dat['col4'] 
     radeg,decdeg = todeg(ra,dec)
@@ -163,7 +220,8 @@ def lyman2016():
     distmod = np.array(
             [val.split('pm')[0].strip('$') for val in temp]).astype(float)
     z = np.array([Distance(distmod=val).z for val in distmod])
-    return name, radeg, decdeg, z
+    ref = ['L16']*len(name)
+    return name, date, radeg, decdeg, z, ref
 
 
 def prentice2016():
@@ -251,30 +309,29 @@ if __name__=="__main__":
     name, disc, ra, dec, redshift, ref = add(
             name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
-    print(name)
-    print(disc)
-    print(redshift)
-    print(ref)
-
     # Add the SDSS II sample
     print("Adding the SDSS II sample")
-    n,r,d,z = sdssII()
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = sdssII()
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
     # Add the Cano (2013) sample
     print("Adding the Cano (2013) sample")
-    n,r,d,z = cano2013() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = cano2013() 
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
     # Add the Cano (2016) sample
     print("Adding the Cano (2016) sample")
-    n,r,d,z = cano2016() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = cano2016() 
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
     # Add the Lyman (2016) sample
     print("Adding the Lyman (2016) sample")
-    n,r,d,z = lyman2016() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = lyman2016() 
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
     # Add the Prentice (2016) sample
     print("Adding the Prentice (2016) sample")
