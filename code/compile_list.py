@@ -31,7 +31,7 @@ def todeg(ra, dec):
     return np.array(radeg), np.array(decdeg)
 
 
-def openSN():
+def opensn():
     """ 
     Automatically grab all of the Ic-BL SNe from the open SN catalog """
     print("Connecting to the open SN catalog...")
@@ -77,7 +77,6 @@ def tns():
     ref = ['TNS'] * nsn
 
     return name, date, radeg, decdeg, z, ref
-
 
 
 def ptf():
@@ -185,36 +184,6 @@ def sdssII():
     z = np.array(dat['col5'])
     radeg, decdeg = todeg(ra, dec)
     return name, texpl, radeg, decdeg, z, ref
-
-
-def cano2013():
-    """ The table of GRB/XRF-less Ic-BL SNe,
-    from Cano et al. 2013 (since the ones with GRBs 
-    I added positions from the Open Supernova Catalog """
-    dat = Table.read(
-            "%s/cano2013.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    disc = {}
-    disc['SN1997ef'] = Time('1997-11-25T00:00:00').jd
-    disc['SN2002ap'] = Time('2002-01-29T00:00:00').jd
-    disc['SN2003jd'] = Time('2003-10-25T00:00:00').jd
-    disc['SN2005kz'] = Time('2005-12-01T00:00:00').jd
-    disc['SN2007D'] = Time('2007-01-09T00:00:00').jd
-    disc['SN2007ru'] = Time('2007-11-27T00:00:00').jd
-    disc['SN2009bb'] = Time('2009-03-21T00:00:00').jd
-    disc['SN2010ah'] = Time('2010-02-23T00:00:00').jd
-    disc['SN2010ay'] = Time('2010-03-17T00:00:00').jd
-    name = dat['col1']
-    ra = dat['col3']
-    dec = dat['col4']
-    radeg,decdeg = todeg(ra,dec)
-    z = dat['col5']
-    date = []
-    ref = []
-    for n in name:
-        date.append(disc[n])
-        ref.append('C13')
-    return name, date, radeg, decdeg, z, ref
 
 
 def cano2016():
@@ -335,67 +304,40 @@ def add(name, disc, ra, dec, redshift, ref, n, di, r, d, z, re):
 
 
 if __name__=="__main__":
-    # Name, Approximate Expl. Date, RA, Dec, Redshift, Reference
+    dat = opensn()
+    names = np.array(list(dat.keys()))
+    nsn = len(names)
+    ra = []
+    dec = []
+    for key,val in dat.items():
+        if len(val['ra']) > 0:
+            ra.append(val['ra'][0]['value'])
+            dec.append(val['dec'][0]['value'])
+    ra,dec = todeg(ra,dec)
+    opensnpos = SkyCoord(ra, dec, unit='deg')
 
-    print("Adding the PTF/iPTF sample")
-    name, disc, ra, dec, redshift, ref = ptf()
-    print("added %s events" %len(name))
+    # Question 1: are there any Ic-BL on TNS that are not on openSN?
+    name, date, radeg, decdeg, z, ref = tns()
+    name = np.array([val.replace(" ", "") for val in name])
+    missing = np.setdiff1d(name,names)
+    if len(missing) > 0:
+        print("There are TNS Ic-BL SNe missing from OpenSN")
+        print(missing)
+    else:
+        print("All TNS Ic-BL SNe are on OpenSN")
 
-    # Add the new ZTF sample
-    print("Adding the ZTF sample")
-    n,di,r,d,z,re = ztf()
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
-    # Add the SDSS II sample
-    print("Adding the SDSS II sample")
-    n,di,r,d,z,re = sdssII()
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
-    # Add the Cano (2013) sample
-    print("Adding the Cano (2013) sample")
-    n,di,r,d,z,re = cano2013() 
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
-    # Add the Cano (2016) sample
-    print("Adding the Cano (2016) sample")
-    n,di,r,d,z,re = cano2016() 
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
-    # Add the Lyman (2016) sample
-    print("Adding the Lyman (2016) sample")
-    n,di,r,d,z,re = lyman2016() 
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
-    # Add the Prentice (2016) sample
-    print("Adding the Prentice (2016) sample")
-    n,r,d,z = prentice2016() 
-    print(n)
-    # name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
-
-    # Add the Modjaz (2016) sample
-    # print("Adding the Modjaz (2016) sample")
-    # n,r,d,z = modjaz2016() 
-    # name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
-
-    # Add the list from TNS
-    print("adding list from TNS")
-    n,di,r,d,z,re = tns() 
-    name, disc, ra, dec, redshift, ref = add(
-            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
-
+    # Question 2: are there any Ic-BL from other papers that are not on openSN?
+    name, date, radeg, decdeg, z, ref = cano2013()
     name = np.array(name)
-    redshift = np.array(redshift)
-    ra = np.array(ra)
-    dec = np.array(dec)
-    print("TOTAL NUMBER IS")
-    print(len(name))
+    # compare positions, since some of these only have ZTF names...
+    ptfpos = SkyCoord(radeg, decdeg, unit='deg')
+    for ii,val in enumerate(ptfpos):
+        if min(val.separation(opensnpos).arcsec) < 1:
+            print("%s already in openSN" %name[ii])
+        else:
+            print("%s not in openSN" %name[ii])
 
-    ascii.write(
-            [name,ra,dec,redshift], 'all_icbl.html', 
-            names=['Name', 'RA', 'Dec', 'z'], delimiter=',', overwrite=True,
-            format='html')
+    # # Name, Expl./Disc. Date, RA, Dec, Redshift, Reference
+    # ascii.write(
+    #         [names], 'all_icbl.html', names=['Name'], delimiter=',', 
+    #         overwrite=True, format='html')
