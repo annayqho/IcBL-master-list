@@ -150,58 +150,6 @@ def ztf():
     return list(name), list(date), list(radeg), list(decdeg), list(z), ref
 
 
-def sdssII():
-    """ the sample from SDSS-II (Taddia et al. 2015)
-    I copied the table from the .tex file, and only kept the Ic-BL ones
-    also got rid of the IIb that was commented out
-    """
-    dat = Table.read(
-            "%s/taddia2015.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    # Discovery dates from TNS
-    disc = {}
-    disc['SN2005fk'] = Time('2005-09-12T00:00:00').jd
-    disc['SN2005kr'] = Time('2005-11-03T00:00:00').jd
-    # from open SN catalog
-    disc['SN2005ks'] = Time('2005-11-04T00:00:00').jd
-    # from Table 3 in Taddia 2015...not sure what t_0 is though
-    disc['SN14475'] = Time(54008.68, format='mjd').jd
-    # actual texpl from Taddia 2015
-    disc['SN2006nx'] = Time(54038.89, format='mjd').jd
-
-    name = dat['col1']
-    ra_raw = dat['col2'].tolist()
-    dec_raw = dat['col3'].tolist()
-    texpl = []
-    ref = []
-    for ii,ra in enumerate(ra_raw):
-        ra_raw[ii] = ra.strip('$')
-        dec_raw[ii] = dec_raw[ii].strip('$')
-        texpl.append(disc[name[ii]])
-        ref.append('T15')
-    ra = np.array(ra_raw)
-    dec = np.array(dec_raw)
-    z = np.array(dat['col5'])
-    radeg, decdeg = todeg(ra, dec)
-    return name, texpl, radeg, decdeg, z, ref
-
-
-
-def prentice2016():
-    """ The list of Ic-BL SNe from Prentice et al. 2016 """
-    dat = Table.read(
-            "%s/prentice2016.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    name = dat['col1']
-    cl = dat['col2']
-    ra = dat['col3']
-    dec =dat['col4']
-    radeg, decdeg = todeg(ra,dec)
-    z = dat['col6']
-    is_icbl = np.logical_or(cl=='Ic-BL', cl=='GRB-SN')
-    return name[is_icbl], radeg[is_icbl], decdeg[is_icbl], z[is_icbl]
-
-
 def modjaz2016():
     """ The list of Ic-BL SNe from Modjaz et al. 2016 
     Removed the one with a lower limit on redshift
@@ -271,7 +219,7 @@ if __name__=="__main__":
         print("All TNS Ic-BL SNe are on OpenSN")
 
     # Question 2: are there any Ic-BL from other papers that are not on openSN?
-    name, date, radeg, decdeg, z, ref = prentice2016()
+    name, a, radeg, decdeg, z,a = sdssII()
     name = np.array(name)
     print(np.setdiff1d(name,names))
     # compare positions, since some of these only have ZTF names...
