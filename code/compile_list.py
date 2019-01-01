@@ -1,6 +1,7 @@
-""" Compile a list of Ic-BL SNe with z < 0.1 """
+""" Compile a list of Ic-BL SNe """
 
 import numpy as np
+import requests
 from astropy.table import Table
 from astropy.time import Time
 from astropy.coordinates import SkyCoord,Distance
@@ -28,6 +29,74 @@ def todeg(ra, dec):
         radeg.append(c.ra.deg)
         decdeg.append(c.dec.deg)
     return np.array(radeg), np.array(decdeg)
+
+
+def openSN():
+    """ 
+    Automatically grab all of the Ic-BL SNe from the open SN catalog """
+    print("Connecting to the open SN catalog...")
+    server = "https://api.sne.space/catalog"
+    r = requests.get(server, params={'claimedtype': 'Ic BL', 'format': 'csv'})
+    alldat = r.text.split('\n')
+    
+    # Header
+    header = np.array(alldat[0].split(','))
+
+    # Data
+    dat = alldat[1:]
+    # According to the formatting, you want to group things that live together
+    # in double quotation marks. So, the real split between items is ",", not ,
+    for ii,row in enumerate(dat):
+        dat[ii] = np.array(dat[ii].split('","'))
+    dat = np.array(dat)
+
+    # Retrieve the data you want
+    nsn = dat.shape[0]
+    print("Found %s claimed Ic-BL SNe on the open SN catalog" %nsn)
+
+    name = dat[:,np.where(header=='Name')[0][0]]
+    ra = dat[:,np.where(header=='RA')[0][0]]
+    dec = dat[:,np.where(header=='DEC')[0][0]]
+    radeg, decdeg = todeg(ra,dec)
+    z = dat[:,np.where(header=='Redshift')[0][0]]
+    date = dat[:,np.where(header=='Discovery Date (UT)')[0][0]]
+    ref = ['TNS'] * nsn
+
+    return name, date, radeg, decdeg, z, ref
+
+
+def tns():
+    """ Run this to automatically grab all of the Ic-BL SNe from TNS """
+    print("Connecting to TNS server...")
+    server = "https://wis-tns.weizmann.ac.il/search"
+    r = requests.get(server, params={'objtype': 7, 'format': 'csv'})
+    alldat = r.text.split('\n')
+    
+    # Header
+    header = np.array(alldat[0].split('","'))
+
+    # Data
+    dat = alldat[1:]
+    # According to the formatting, you want to group things that live together
+    # in double quotation marks. So, the real split between items is ",", not ,
+    for ii,row in enumerate(dat):
+        dat[ii] = np.array(dat[ii].split('","'))
+    dat = np.array(dat)
+
+    # Retrieve the data you want
+    nsn = dat.shape[0]
+    print("Found %s Ic-BL SNe on TNS" %nsn)
+
+    name = dat[:,np.where(header=='Name')[0][0]]
+    ra = dat[:,np.where(header=='RA')[0][0]]
+    dec = dat[:,np.where(header=='DEC')[0][0]]
+    radeg, decdeg = todeg(ra,dec)
+    z = dat[:,np.where(header=='Redshift')[0][0]]
+    date = dat[:,np.where(header=='Discovery Date (UT)')[0][0]]
+    ref = ['TNS'] * nsn
+
+    return name, date, radeg, decdeg, z, ref
+
 
 
 def ptf():
@@ -255,18 +324,6 @@ def modjaz2016():
     return name, radeg, decdeg, z
 
 
-def tns():
-    """ This is the list on TNS as of 2018-12-29 """
-    dat = Table.read(
-            "%s/tns_search.csv" %DATA_DIR, 
-            delimiter=';')
-    name = dat['Name']
-    ra = dat['RA']
-    dec = dat['DEC']
-    radeg, decdeg = todeg(ra,dec)
-    z = dat['Redshift']
-    return name, radeg, decdeg, z
-
 
 def add(name, disc, ra, dec, redshift, ref, n, di, r, d, z, re):
     c = SkyCoord(ra, dec, unit='deg')
@@ -336,26 +393,19 @@ if __name__=="__main__":
     # Add the Prentice (2016) sample
     print("Adding the Prentice (2016) sample")
     n,r,d,z = prentice2016() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    print(n)
+    # name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
 
     # Add the Modjaz (2016) sample
-    print("Adding the Modjaz (2016) sample")
-    n,r,d,z = modjaz2016() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
-
-    # Add the most recent LLGRB (SN2017iuk)
-    print("adding the most recent LLGRB")
-    n = ['SN2017iuk']
-    r = ['11:09:39.52']
-    d = ['-12:35:18.34']
-    radeg,decdeg = todeg(r,d)
-    z = [0.037022]
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    # print("Adding the Modjaz (2016) sample")
+    # n,r,d,z = modjaz2016() 
+    # name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
 
     # Add the list from TNS
     print("adding list from TNS")
-    n,r,d,z = tns() 
-    name, ra, dec, redshift = add(name, ra, dec, redshift, n, r, d, z)
+    n,di,r,d,z,re = tns() 
+    name, disc, ra, dec, redshift, ref = add(
+            name, disc, ra, dec, redshift, ref, n, di, r, d, z, re)
 
     name = np.array(name)
     redshift = np.array(redshift)
