@@ -36,33 +36,14 @@ def openSN():
     Automatically grab all of the Ic-BL SNe from the open SN catalog """
     print("Connecting to the open SN catalog...")
     server = "https://api.sne.space/catalog"
-    r = requests.get(server, params={'claimedtype': 'Ic BL', 'format': 'csv'})
-    alldat = r.text.split('\n')
+    r = requests.get(server, params={'claimedtype': 'Ic BL', 'format': 'json'})
+    dat = r.json()
     
-    # Header
-    header = np.array(alldat[0].split(','))
-
-    # Data
-    dat = alldat[1:]
-    # According to the formatting, you want to group things that live together
-    # in double quotation marks. So, the real split between items is ",", not ,
-    for ii,row in enumerate(dat):
-        dat[ii] = np.array(dat[ii].split('","'))
-    dat = np.array(dat)
-
     # Retrieve the data you want
-    nsn = dat.shape[0]
+    nsn = len(dat.keys())
     print("Found %s claimed Ic-BL SNe on the open SN catalog" %nsn)
 
-    name = dat[:,np.where(header=='Name')[0][0]]
-    ra = dat[:,np.where(header=='RA')[0][0]]
-    dec = dat[:,np.where(header=='DEC')[0][0]]
-    radeg, decdeg = todeg(ra,dec)
-    z = dat[:,np.where(header=='Redshift')[0][0]]
-    date = dat[:,np.where(header=='Discovery Date (UT)')[0][0]]
-    ref = ['TNS'] * nsn
-
-    return name, date, radeg, decdeg, z, ref
+    return dat
 
 
 def tns():
