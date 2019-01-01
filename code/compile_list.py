@@ -186,33 +186,6 @@ def sdssII():
     return name, texpl, radeg, decdeg, z, ref
 
 
-def cano2016():
-    """ The table of GRB-SNe from Cano et al. 2016 """
-    dat = Table.read(
-            "%s/cano2016.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    grbname = dat['col1']
-    date = []
-    # turn GRB name into a date
-    for n in grbname:
-        yy = n[0:2]
-        mm = n[2:4]
-        dd = n[4:6]
-        if yy[0] == '9':
-            tstr = '19%s-%s-%sT00:00:00' %(yy,mm,dd)
-            date.append(Time(tstr, format='isot').jd)
-        else:
-            tstr = '20%s-%s-%sT00:00:00' %(yy,mm,dd)
-            date.append(Time(tstr, format='isot').jd)
-    name = dat['col2'] # SN name
-    ra = dat['col4']
-    dec = dat['col5']
-    radeg,decdeg = todeg(ra,dec)
-    z = dat['col6']
-    ref = ['C16'] * len(name)
-    return name, date, radeg, decdeg, z, ref
-
-
 def lyman2016():
     """ The list of Ic-BL SNe from Lyman et al. 2016 """
     dat = Table.read(
@@ -327,8 +300,9 @@ if __name__=="__main__":
         print("All TNS Ic-BL SNe are on OpenSN")
 
     # Question 2: are there any Ic-BL from other papers that are not on openSN?
-    name, date, radeg, decdeg, z, ref = cano2013()
+    name, date, radeg, decdeg, z, ref = cano2016()
     name = np.array(name)
+    print(np.setdiff1d(name,names))
     # compare positions, since some of these only have ZTF names...
     ptfpos = SkyCoord(radeg, decdeg, unit='deg')
     for ii,val in enumerate(ptfpos):
