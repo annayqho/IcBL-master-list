@@ -186,35 +186,6 @@ def sdssII():
     return name, texpl, radeg, decdeg, z, ref
 
 
-def lyman2016():
-    """ The list of Ic-BL SNe from Lyman et al. 2016 """
-    dat = Table.read(
-            "%s/lyman2016.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    # from open SN
-    disc = {}
-    disc['SN1998bw'] = Time('1998-04-28T00:00:00').jd
-    disc['SN2002ap'] = Time('2002-01-29T00:00:00').jd
-    disc['SN2003jd'] = Time('2003-10-25T00:00:00').jd
-    disc['SN2005kz'] = Time('2005-12-01T00:00:00').jd
-    disc['SN2006aj'] = Time('2006-02-18T00:00:00').jd
-    disc['SN2007ru'] = Time('2007-11-27T00:00:00').jd
-    disc['SN2009bb'] = Time('2009-03-21T00:00:00').jd
-    disc['SN2010bh'] = Time('2010-03-16T00:00:00').jd
-    date = []
-    name = dat['col1']
-    for n in name:
-       date.append(disc[n]) 
-    ra = dat['col3'] 
-    dec = dat['col4'] 
-    radeg,decdeg = todeg(ra,dec)
-    temp = dat['col6'] 
-    distmod = np.array(
-            [val.split('pm')[0].strip('$') for val in temp]).astype(float)
-    z = np.array([Distance(distmod=val).z for val in distmod])
-    ref = ['L16']*len(name)
-    return name, date, radeg, decdeg, z, ref
-
 
 def prentice2016():
     """ The list of Ic-BL SNe from Prentice et al. 2016 """
@@ -300,7 +271,7 @@ if __name__=="__main__":
         print("All TNS Ic-BL SNe are on OpenSN")
 
     # Question 2: are there any Ic-BL from other papers that are not on openSN?
-    name, date, radeg, decdeg, z, ref = cano2016()
+    name, date, radeg, decdeg, z, ref = prentice2016()
     name = np.array(name)
     print(np.setdiff1d(name,names))
     # compare positions, since some of these only have ZTF names...
