@@ -150,23 +150,6 @@ def ztf():
     return list(name), list(date), list(radeg), list(decdeg), list(z), ref
 
 
-def modjaz2016():
-    """ The list of Ic-BL SNe from Modjaz et al. 2016 
-    Removed the one with a lower limit on redshift
-    Actually removed all of them except SN2007bg, because
-    that was the only new one. """
-    dat = Table.read(
-            "%s/modjaz.dat" %DATA_DIR, 
-            delimiter='&', format='ascii.fast_no_header')
-    name = dat['col1']
-    ra = dat['col2']
-    dec =dat['col3']
-    radeg, decdeg = todeg(ra,dec)
-    z = dat['col4']
-    return name, radeg, decdeg, z
-
-
-
 def add(name, disc, ra, dec, redshift, ref, n, di, r, d, z, re):
     c = SkyCoord(ra, dec, unit='deg')
     cadd = SkyCoord(r, d, unit='deg')
@@ -219,7 +202,8 @@ if __name__=="__main__":
         print("All TNS Ic-BL SNe are on OpenSN")
 
     # Question 2: are there any Ic-BL from other papers that are not on openSN?
-    name, a, radeg, decdeg, z,a = sdssII()
+    # Yes, a whole bunch from PTF and ZTF.
+    name, radeg, decdeg, z = ztf()
     name = np.array(name)
     print(np.setdiff1d(name,names))
     # compare positions, since some of these only have ZTF names...
