@@ -203,7 +203,7 @@ if __name__=="__main__":
 
     # Question 2: are there any Ic-BL from other papers that are not on openSN?
     # Yes, a whole bunch from PTF and ZTF.
-    name, radeg, decdeg, z = ztf()
+    name, date, radeg, decdeg, z, ref = ztf()
     name = np.array(name)
     print(np.setdiff1d(name,names))
     # compare positions, since some of these only have ZTF names...
