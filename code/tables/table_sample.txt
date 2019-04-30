@@ -1,0 +1,7 @@
+\startlongtable 
+\begin{deluxetable}{lrrrrr} 
+\tablecaption{Sample of Ic-BL SNe from ZTF in the period May 2018 -- May 2019\label{tab:sample}} 
+\tablewidth{0pt} 
+\tablehead{ \colhead{ZTF ID} & \colhead{RA (hms)} & \colhead{Dec (dms)} & \colhead{Disc (JD)} & \colhead{$z$} & \colhead{Ref.} } 
+\tabletypesize{\scriptsize} 
+\startdata 
