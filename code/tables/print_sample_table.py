@@ -6,6 +6,8 @@ import numpy as np
 from math import floor, log10
 from astropy.time import Time
 from astropy.cosmology import Planck15
+from ztfquery import query
+from ztfquery import marshal
 
 
 def round_sig(x, sig=2):
@@ -18,12 +20,17 @@ def ndec(num):
     dec = str(num).split('.')[-1]
     return len(dec)
 
+# connect to databases
+m = marshal.MarshalAccess()
+zquery = query.ZTFQuery()
 
+
+# initialize LaTeX table
 headings = np.array(
         ['ZTF ID', 'RA (hms)', 'Dec (dms)', 'Disc (JD)', 
          '$z$', 'Ref.'])
 label = "sample"
-caption = "Sample of Ic-BL SNe from ZTF in the period May 2018 - May 2019"
+caption = "Sample of Ic-BL SNe from ZTF in the period May 2018 -- May 2019"
 
 # Print the table headers
 ncol = len(headings)
@@ -53,11 +60,15 @@ outputf.write("\\tabletypesize{\scriptsize} \n")
 outputf.write("\startdata \n")
 
 datadir = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
-names = np.loadtxt(datadir + "/ztf.dat")
+names = np.loadtxt(datadir + "/ztf.dat", dtype=str)
 nobj = len(names)
 
+# this function isn't working right now
+coords = m.get_target_coordinates(names)
+
 for ii in np.arange(nobj):
-    row = rowstr %(names[ii])
+    name = names[ii]
+    row = rowstr %(name, names[ii], names[ii], names[ii], names[ii], names[ii])
     outputf.write(row)
 
 outputf.write("\enddata \n")
