@@ -10,25 +10,48 @@ from astropy.cosmology import Planck15
 from ztfquery import query
 from ztfquery import marshal
 
+datadir = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
+
+
+def plot_98bw(ax):
+    # Plot the light curve of SN1998bw
+    dm = Planck15.distmod(0.0085).value
+    lc = np.loadtxt(datadir + "/sn1998bw.dat", delimiter=';', dtype=str)
+    jd = lc[:,0].astype(float)
+    rmag_raw = lc[:,7]
+    choose = rmag_raw != '     '
+    rmag = rmag_raw[choose]
+    zp = jd[choose][np.argmin(rmag)]
+    ax.plot(
+            (jd[choose]-zp)/(1.0085),
+            rmag.astype(float)-dm, lw=0.5, c='black')
+    vmag_raw = lc[:,5]
+    choose = vmag_raw != '     '
+    vmag = vmag_raw[choose] 
+    ax.plot(
+            (jd[choose]-zp)/(1.0085), 
+            vmag.astype(float)-dm, lw=0.5, c='#e55c30', ls='--')
+
 # connect to databases
 m = marshal.MarshalAccess()
 zquery = query.ZTFQuery()
 
 # get the names of the Ic-BL SNe
-datadir = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
 dat = np.loadtxt(datadir + "/ztf.dat", dtype=str, delimiter=',')
 names = dat[:,0]
 nobj = len(names)
 redshift = dat[:,1].astype(float)
 
 # make a grid of say, 4 across
-ncol = 4
+ncol = 3
 nrow = int(nobj / ncol + 1)
-fig,axarr = plt.subplots(nrow, ncol, figsize=(8,8), sharex=True, sharey=True)
+fig,axarr = plt.subplots(nrow, ncol, figsize=(7,9), sharex=True, sharey=True)
 
 # iterate across the grid
 for ii,name in enumerate(names):
     ax = axarr.reshape(-1)[ii]
+    plot_98bw(ax)
+
     name = names[ii]
     marshal.download_lightcurve(name)
     lc_dict = marshal.get_local_lightcurves(name)
@@ -40,15 +63,17 @@ for ii,name in enumerate(names):
     filt = lc_dict['filter'].values
 
     choose = np.logical_and(filt == 'r', mag < 99)
+    zp = jd[choose][np.argmin(mag[choose])]
+
     if sum(choose) > 0:
         ax.errorbar(
-                (jd[choose]-jd[choose][0])/(1+redshift[ii]), mag[choose]-dm, 
+                (jd[choose]-zp)/(1+redshift[ii]), mag[choose]-dm, 
                 yerr=emag[choose], c='#140b34', fmt='s', ms=5)
     
     choose = np.logical_and(filt == 'g', mag < 99)
     if sum(choose) > 0:
         ax.errorbar(
-                (jd[choose]-jd[choose][0])/(1+redshift[ii]), mag[choose]-dm, 
+                (jd[choose]-zp)/(1+redshift[ii]), mag[choose]-dm, 
                 yerr=emag[choose], c='#e55c30', fmt='o', ms=5)
 
     ax.text(0.95, 0.95, name.split("18")[1], transform=ax.transAxes, 
@@ -69,9 +94,10 @@ fig.text(0.5, 0.04,
 fig.text(0.04, 0.5, "Absolute Magnitude (AB)", 
         ha='center', va='center', fontsize=16, rotation='vertical')
 
-ax.set_xlim(-20,100)
-ax.invert_yaxis()
+ax.set_xlim(-30,100)
+ax.set_ylim(-15,-20.5)
+#ax.invert_yaxis()
 #plt.tight_layout()
 
-plt.show()
-#plt.savefig("lc_grid.eps", format='eps', dpi=1000)
+#plt.show()
+plt.savefig("lc_grid.eps", format='eps', dpi=1000)
