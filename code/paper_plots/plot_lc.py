@@ -9,7 +9,10 @@ from astropy.time import Time
 from astropy.cosmology import Planck15
 from ztfquery import query
 from ztfquery import marshal
+import extinction
 
+
+# Global variables
 datadir = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
 
 
@@ -35,14 +38,21 @@ def plot_98bw(ax):
 # connect to databases
 m = marshal.MarshalAccess()
 zquery = query.ZTFQuery()
+print("Connected")
+
+# download metadata for all sources
+m.load_target_sources()
+print("Downloaded metadata")
 
 # get the names of the Ic-BL SNe
 dat = np.loadtxt(datadir + "/ztf.dat", dtype=str, delimiter=',')
 names = dat[:,0]
-nobj = len(names)
-redshift = dat[:,1].astype(float)
+
+# get redshifts
+redshift = m.get_target_redshift(names).values.astype(float)
 
 # make a grid of say, 4 across
+nobj = len(names)
 ncol = 3
 nrow = int(nobj / ncol + 1)
 fig,axarr = plt.subplots(nrow, ncol, figsize=(7,9), sharex=True, sharey=True)
@@ -53,9 +63,19 @@ for ii,name in enumerate(names):
     plot_98bw(ax)
 
     name = names[ii]
+
+    # Get the light curve
     marshal.download_lightcurve(name)
     lc_dict = marshal.get_local_lightcurves(name)
 
+    # Get the epochs of spectra
+    spec_fnames = list(marshal.download_spectra(name, dirout=None).keys())
+    specdates_raw = np.array([f.split('_')[1] for f in spec_fnames])
+    specdates = np.array(
+            ['-'.join([d[0:4],d[4:6],d[6:]]) for d in specdates_raw])
+    specjd = Time(specdates).jd
+
+    # Plot the light curve
     jd = lc_dict['jdobs'].values
     dm = Planck15.distmod(z=redshift[ii]).value
     mag = lc_dict['mag'].values
@@ -75,6 +95,10 @@ for ii,name in enumerate(names):
         ax.errorbar(
                 (jd[choose]-zp)/(1+redshift[ii]), mag[choose]-dm, 
                 yerr=emag[choose], c='#e55c30', fmt='o', ms=5)
+
+    # Plot the epochs of spectra
+    for t in specjd:
+        ax.axvline(x=t-zp, lw=1.0, c='lightgrey', ls='-')
 
     ax.text(0.95, 0.95, name.split("18")[1], transform=ax.transAxes, 
             fontsize=12, horizontalalignment='right',
