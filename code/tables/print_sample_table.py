@@ -23,7 +23,7 @@ def ndec(num):
 # connect to databases
 m = marshal.MarshalAccess()
 zquery = query.ZTFQuery()
-
+m.load_target_sources()
 
 # initialize LaTeX table
 headings = np.array(
@@ -63,12 +63,12 @@ datadir = "/Users/annaho/Dropbox/Projects/Research/IcBL/data"
 names = np.loadtxt(datadir + "/ztf.dat", dtype=str)
 nobj = len(names)
 
-# this function isn't working right now
-coords = m.get_target_coordinates(names)
+# extract the redshifts
+redshift = m.get_target_redshift(names).values.astype(float)
 
 for ii in np.arange(nobj):
     name = names[ii]
-    row = rowstr %(name, names[ii], names[ii], names[ii], names[ii], names[ii])
+    row = rowstr %(name, names[ii], names[ii], names[ii], redshift[ii], names[ii])
     outputf.write(row)
 
 outputf.write("\enddata \n")

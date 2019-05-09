@@ -5,3 +5,19 @@
 \tablehead{ \colhead{ZTF ID} & \colhead{RA (hms)} & \colhead{Dec (dms)} & \colhead{Disc (JD)} & \colhead{$z$} & \colhead{Ref.} } 
 \tabletypesize{\scriptsize} 
 \startdata 
+ZTF18aaqjovh & ZTF18aaqjovh & ZTF18aaqjovh & ZTF18aaqjovh & 0.094 & ZTF18aaqjovh \\ 
+ZTF18abklarx & ZTF18abklarx & ZTF18abklarx & ZTF18abklarx & 0.09 & ZTF18abklarx \\ 
+ZTF18abukavn & ZTF18abukavn & ZTF18abukavn & ZTF18abukavn & 0.04415 & ZTF18abukavn \\ 
+ZTF18abcraaa & ZTF18abcraaa & ZTF18abcraaa & ZTF18abcraaa & 0.073 & ZTF18abcraaa \\ 
+ZTF18acbwxcc & ZTF18acbwxcc & ZTF18acbwxcc & ZTF18acbwxcc & 0.048 & ZTF18acbwxcc \\ 
+ZTF18acbvpzj & ZTF18acbvpzj & ZTF18acbvpzj & ZTF18acbvpzj & 0.1184 & ZTF18acbvpzj \\ 
+ZTF18acrfymv & ZTF18acrfymv & ZTF18acrfymv & ZTF18acrfymv & 0.0301 & ZTF18acrfymv \\ 
+ZTF18acaimrb & ZTF18acaimrb & ZTF18acaimrb & ZTF18acaimrb & 0.03154 & ZTF18acaimrb \\ 
+ZTF18abvfjwt & ZTF18abvfjwt & ZTF18abvfjwt & ZTF18abvfjwt & 0.03167 & ZTF18abvfjwt \\ 
+ZTF18acpeekw & ZTF18acpeekw & ZTF18acpeekw & ZTF18acpeekw & 0.037 & ZTF18acpeekw \\ 
+ZTF18achdzwk & ZTF18achdzwk & ZTF18achdzwk & ZTF18achdzwk & 0.054 & ZTF18achdzwk \\ 
+ZTF18acushie & ZTF18acushie & ZTF18acushie & ZTF18acushie & 0.045 & ZTF18acushie \\ 
+ZTF18acqphpd & ZTF18acqphpd & ZTF18acqphpd & ZTF18acqphpd & 0.0384 & ZTF18acqphpd \\ 
+ZTF18acxgoki & ZTF18acxgoki & ZTF18acxgoki & ZTF18acxgoki & 0.072 & ZTF18acxgoki \\ 
+\enddata 
+\end{deluxetable} 
