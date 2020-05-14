@@ -121,5 +121,5 @@ fig.text(0.04, 0.5, "Absolute Magnitude (AB)",
 ax.set_xlim(-30,100)
 ax.set_ylim(-15,-20.5)
 
-#plt.show()
-plt.savefig("lc_grid.eps", format='eps', dpi=1000)
+plt.show()
+#plt.savefig("lc_grid.eps", format='eps', dpi=1000)
